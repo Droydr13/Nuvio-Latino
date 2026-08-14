@@ -25,6 +25,17 @@
       "contentLanguage": ["es"]
     },
     {
+      "id": "seriesmetro",
+      "name": "SeriesMetro",
+      "description": "Streams en Latino desde SeriesMetro. Fastream.",
+      "version": "2.0.0",
+      "author": "KennethJYS",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "providers/seriesmetro.js",
+      "enabled": true,
+      "contentLanguage": ["es"]
+    },
+    {
       "id": "hackstore",
       "name": "HackStore",
       "description": "Streams en Latino desde HackStore.",
