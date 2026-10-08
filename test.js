@@ -1,20 +1,34 @@
 // test.js
-// Uso: node test.js [tmdbId] [tipo] [temporada] [episodio] [provider]
+// Uso: 
+//   node test.js [tmdbId] [tipo] [provider] (para películas)
+//   node test.js [tmdbId] [tipo] [temporada] [episodio] [provider] (para series)
 // Ejemplos:
 //   node test.js 550 movie
-//   node test.js 157336 movie movie cinecalidad
+//   node test.js 157336 movie cinecalidad
 //   node test.js 1396 tv 1 1 lamovie
-
-const providerName = process.argv[6] || 'lamovie';
-const { getStreams } = require(`./providers/${providerName}.js`);
 
 const tmdbId = process.argv[2] || '550';
 const mediaType = process.argv[3] || 'movie';
-const season = process.argv[4] ? parseInt(process.argv[4]) : null;
-const episode = process.argv[5] ? parseInt(process.argv[5]) : null;
+
+let season = null;
+let episode = null;
+let providerName = 'lamovie';
+
+// Detectar los argumentos según si es película o serie
+if (mediaType === 'tv') {
+  season = process.argv[4] ? parseInt(process.argv[4]) : null;
+  episode = process.argv[5] ? parseInt(process.argv[5]) : null;
+  providerName = process.argv[6] || 'lamovie';
+} else {
+  // Para películas, el proveedor va directamente en la 4ta posición
+  providerName = process.argv[4] || 'lamovie';
+}
 
 console.log(`\nTesting ${providerName} provider...`);
 console.log(`TMDB: ${tmdbId} | Tipo: ${mediaType}${season ? ` | S${season}E${episode}` : ''}\n`);
+
+// Importamos dinámicamente el proveedor basado en la variable detectada
+const { getStreams } = require(`./providers/${providerName}.js`);
 
 getStreams(tmdbId, mediaType, season, episode)
   .then(streams => {

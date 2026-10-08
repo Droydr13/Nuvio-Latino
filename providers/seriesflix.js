@@ -1,195 +1,309 @@
-var x = Object.defineProperty;
-var R = Object.getOwnPropertyDescriptor;
-var b = Object.getOwnPropertyNames, y = Object.getOwnPropertySymbols;
-var N = Object.prototype.hasOwnProperty, F = Object.prototype.propertyIsEnumerable;
-var S = (n, e, t) => e in n ? x(n, e, { enumerable: true, configurable: true, writable: true, value: t }) : n[e] = t, U = (n, e) => {
-  for (var t in e || (e = {}))
-    N.call(e, t) && S(n, t, e[t]);
-  if (y)
-    for (var t of y(e))
-      F.call(e, t) && S(n, t, e[t]);
-  return n;
-};
-var H = (n, e) => {
-  for (var t in e)
-    x(n, t, { get: e[t], enumerable: true });
-}, M = (n, e, t, l) => {
-  if (e && typeof e == "object" || typeof e == "function")
-    for (let r of b(e))
-      !N.call(n, r) && r !== t && x(n, r, { get: () => e[r], enumerable: !(l = R(e, r)) || l.enumerable });
-  return n;
-};
-var D = (n) => M(x({}, "__esModule", { value: true }), n);
-var d = (n, e, t) => new Promise((l, r) => {
-  var o = (a) => {
-    try {
-      i(t.next(a));
-    } catch (c) {
-      r(c);
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
     }
-  }, s = (a) => {
-    try {
-      i(t.throw(a));
-    } catch (c) {
-      r(c);
-    }
-  }, i = (a) => a.done ? l(a.value) : Promise.resolve(a.value).then(o, s);
-  i((t = t.apply(n, e)).next());
-});
-var K = {};
-H(K, { getStreams: () => q });
-module.exports = D(K);
-var k = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
-function L(n, e) {
-  return n >= 3840 || e >= 2160 ? "4K" : n >= 1920 || e >= 1080 ? "1080p" : n >= 1280 || e >= 720 ? "720p" : n >= 854 || e >= 480 ? "480p" : "360p";
-}
-function A(t) {
-  return d(this, arguments, function* (n, e = {}) {
-    try {
-      let r = yield (yield fetch(n, { headers: U({ "User-Agent": k }, e), redirect: "follow" })).text();
-      if (!r.includes("#EXT-X-STREAM-INF")) {
-        let i = n.match(/[_-](\d{3,4})p/);
-        return i ? `${i[1]}p` : "Unknown";
+  return a;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+var __async = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
       }
-      let o = 0, s = 0;
-      for (let i of r.split(`
-`)) {
-        let a = i.match(/RESOLUTION=(\d+)x(\d+)/);
-        if (a) {
-          let c = parseInt(a[2]);
-          c > s && (s = c, o = parseInt(a[1]));
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
+var seriesflix_exports = {};
+__export(seriesflix_exports, {
+  getStreams: () => getStreams
+});
+module.exports = __toCommonJS(seriesflix_exports);
+var UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+function normalizeResolution(width, height) {
+  if (width >= 3840 || height >= 2160)
+    return "4K";
+  if (width >= 1920 || height >= 1080)
+    return "1080p";
+  if (width >= 1280 || height >= 720)
+    return "720p";
+  if (width >= 854 || height >= 480)
+    return "480p";
+  return "360p";
+}
+function detectQuality(_0) {
+  return __async(this, arguments, function* (m3u8Url, headers = {}) {
+    try {
+      const res = yield fetch(m3u8Url, {
+        headers: __spreadValues({ "User-Agent": UA }, headers),
+        redirect: "follow"
+      });
+      const data = yield res.text();
+      if (!data.includes("#EXT-X-STREAM-INF")) {
+        const match = m3u8Url.match(/[_-](\d{3,4})p/);
+        return match ? `${match[1]}p` : "Unknown";
+      }
+      let bestWidth = 0;
+      let bestHeight = 0;
+      for (const line of data.split("\n")) {
+        const m = line.match(/RESOLUTION=(\d+)x(\d+)/);
+        if (m) {
+          const h = parseInt(m[2]);
+          if (h > bestHeight) {
+            bestHeight = h;
+            bestWidth = parseInt(m[1]);
+          }
         }
       }
-      return s > 0 ? L(o, s) : "Unknown";
-    } catch (l) {
+      return bestHeight > 0 ? normalizeResolution(bestWidth, bestHeight) : "Unknown";
+    } catch (e) {
       return "Unknown";
     }
   });
 }
-var E = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", _ = "https://nupload.me";
-function z(n, e) {
-  return d(this, null, function* () {
-    if (typeof XMLHttpRequest != "undefined")
-      return new Promise((t, l) => {
-        let r = new XMLHttpRequest();
-        r.open("GET", n), r.responseType = "text";
-        for (let [o, s] of Object.entries(e))
-          r.setRequestHeader(o, s);
-        r.onload = () => {
-          t(r.responseURL || n);
-        }, r.onerror = () => l(new Error("Network error via XHR")), r.send();
+var UA2 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+var BASE_URL = "https://nupload.me";
+function getFinalUrlBypass(url, headers) {
+  return __async(this, null, function* () {
+    if (typeof XMLHttpRequest !== "undefined") {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        xhr.responseType = "text";
+        for (const [k, v] of Object.entries(headers)) {
+          xhr.setRequestHeader(k, v);
+        }
+        xhr.onload = () => {
+          resolve(xhr.responseURL || url);
+        };
+        xhr.onerror = () => reject(new Error("Network error via XHR"));
+        xhr.send();
       });
-    {
-      let t = yield fetch(n, { headers: e, redirect: "follow" });
-      if (!t.ok)
-        throw new Error(`HTTP ${t.status} al seguir redirecci\xF3n`);
-      return t.url;
+    } else {
+      const r = yield fetch(url, { headers, redirect: "follow" });
+      if (!r.ok)
+        throw new Error(`HTTP ${r.status} al seguir redirecci\xF3n`);
+      return r.url;
     }
   });
 }
-function T(n) {
-  return d(this, null, function* () {
-    var e;
+function resolveNupload(embedUrl) {
+  return __async(this, null, function* () {
+    var _a;
     try {
-      console.log(`[Nupload] Resolviendo: ${n}`);
-      let t = yield fetch(n, { headers: { "User-Agent": E, Referer: _ + "/" } }), l = yield t.text();
-      if (!t.ok)
-        throw new Error(`HTTP ${t.status} al cargar el embed`);
-      let r = l.match(/([A-Za-z]+)\.forEach\s*\(function\s+\w+\s*\(value\)\s*\{[^}]+atob/);
-      if (!r)
-        return console.log("[Nupload] No se encontr\xF3 patr\xF3n de ofuscaci\xF3n ni iframe."), null;
-      let o = r[1], s = l.match(new RegExp(o + "\\.forEach[^-]+-\\s*(\\d+)"));
-      if (!s)
-        return console.log("[Nupload] No se pudo extraer el offset num\xE9rico"), null;
-      let i = parseInt(s[1]), a = l.match(new RegExp("var\\s+" + o + "\\s*=\\s*(\\[[^\\]]+\\])"));
-      if (!a)
-        return console.log("[Nupload] No se encontr\xF3 el array de valores ofuscados"), null;
-      let c = JSON.parse(a[1]), u = "";
-      c.forEach((w) => {
-        u += String.fromCharCode(parseInt(atob(w).replace(/\D/g, "")) - i);
+      console.log(`[Nupload] Resolviendo: ${embedUrl}`);
+      const res = yield fetch(embedUrl, {
+        headers: { "User-Agent": UA2, "Referer": BASE_URL + "/" }
       });
-      let h = (e = l.match(/var sesz\s*=\s*"([^"]+)"/)) == null ? void 0 : e[1];
-      if (!h)
-        return console.log("[Nupload] No se encontr\xF3 el token sesz"), null;
-      let v = u + "?s=" + h;
-      console.log("[Nupload] Siguiendo redirecci\xF3n de la URL construida...");
-      let f = yield z(v, { "User-Agent": E }), g = { "User-Agent": E, Referer: "https://nupload.me/", Origin: "https://nupload.me" }, $ = yield A(f, { Referer: "https://nupload.me/", "User-Agent": E });
-      return console.log("[Nupload] Quality detectada:", $), console.log(`[Nupload] URL encontrada (${$}): ${f.substring(0, 80)}...`), { url: f, quality: $, headers: g };
-    } catch (t) {
-      return console.log(`[Nupload] Error: ${t.message}`), null;
-    }
-  });
-}
-var I = "439c478a771f35c05022f9feabcca01c", P = "https://seriesflixhd.best", W = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-function m(n) {
-  return n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, "y").replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-}
-function B(n, e) {
-  return d(this, null, function* () {
-    let [t, l, r] = yield Promise.all(["es-ES", "es-MX", "en-US"].map((u) => fetch(`https://api.themoviedb.org/3/${e}/${n}?api_key=${I}&language=${u}`).then((h) => h.json()).catch(() => null))), o = t ? e === "movie" ? t.title : t.name : null, s = l && !/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(e === "movie" ? l.title : l.name) ? l : r;
-    if (!s)
-      return null;
-    let i = e === "movie" ? s.title : s.name, a = e === "movie" ? s.original_title : s.original_name, c = (s.release_date || s.first_air_date || "").substring(0, 4);
-    return console.log(`[SeriesFlixHD] TMDB: "${i}" (${c})`), { title: i, originalTitle: a, year: c, titleEs: o };
-  });
-}
-function C(n) {
-  return d(this, null, function* () {
-    let e = `${P}/episodio/${n}`;
-    try {
-      let t = yield fetch(e, { headers: { "User-Agent": W, Accept: "text/html" } });
-      return t.ok ? yield t.text() : null;
-    } catch (t) {
-      return console.log(`[SeriesFlixHD] fetch error: ${t.message}`), null;
-    }
-  });
-}
-function O(n) {
-  let e = { latino: [], castellano: [] }, t = n.match(/LATINO[\s\S]*?<ul[^>]*>([\s\S]*?)<\/ul>/), l = n.match(/CASTELLANO[\s\S]*?<ul[^>]*>([\s\S]*?)<\/ul>/), r = (o) => o ? [...o.matchAll(/data-url="([^"]+)"/g)].map((s) => {
-    try {
-      return atob(s[1]);
-    } catch (i) {
-      return console.log(`[SeriesFlixHD] Error decodificando base64: ${i.message}`), null;
-    }
-  }).filter(Boolean).filter((s) => s.includes("nupload.me/watch/")) : [];
-  return e.latino = r(t == null ? void 0 : t[1]), e.castellano = r(l == null ? void 0 : l[1]), e;
-}
-function q(n, e, t, l) {
-  return d(this, null, function* () {
-    if (!n || e !== "tv")
-      return [];
-    let r = Date.now();
-    console.log(`[SeriesFlixHD] Buscando: TMDB ${n} S${t}E${l}`);
-    try {
-      let o = yield B(n, e);
-      if (!o)
-        return [];
-      let s = String(l), i = parseInt(t), a = [];
-      o.title && (a.push(`${m(o.title)}-${i}x${s}`), a.push(`${m(o.title)}-${o.year}-${i}x${s}`)), o.originalTitle && o.originalTitle !== o.title && (a.push(`${m(o.originalTitle)}-${i}x${s}`), a.push(`${m(o.originalTitle)}-${o.year}-${i}x${s}`)), o.titleEs && o.titleEs !== o.title && (a.push(`${m(o.titleEs)}-${i}x${s}`), a.push(`${m(o.titleEs)}-${o.year}-${i}x${s}`));
-      let c = null;
-      try {
-        c = yield Promise.any(a.map((f) => C(f).then((g) => {
-          if (!g || !g.includes("data-url"))
-            throw new Error("not found");
-          return console.log("[SeriesFlixHD] \u2713 Slug encontrado"), g;
-        })));
-      } catch (f) {
-        c = null;
+      const html = yield res.text();
+      if (!res.ok)
+        throw new Error(`HTTP ${res.status} al cargar el embed`);
+      const forEachMatch = html.match(/([A-Za-z]+)\.forEach\s*\(function\s+\w+\s*\(value\)\s*\{[^}]+atob/);
+      if (!forEachMatch) {
+        console.log("[Nupload] No se encontr\xF3 patr\xF3n de ofuscaci\xF3n ni iframe.");
+        return null;
       }
-      let u = O(c);
-      console.log(`[SeriesFlixHD] Latino: ${u.latino.length} | Castellano: ${u.castellano.length}`);
-      let h = [];
-      for (let [f, g] of [[u.latino, "Latino"], [u.castellano, "Castellano"]]) {
-        if (f.length === 0)
+      const arrayVar = forEachMatch[1];
+      const offsetMatch = html.match(new RegExp(arrayVar + "\\.forEach[^-]+-\\s*(\\d+)"));
+      if (!offsetMatch) {
+        console.log("[Nupload] No se pudo extraer el offset num\xE9rico");
+        return null;
+      }
+      const offset = parseInt(offsetMatch[1]);
+      const arrayMatch = html.match(new RegExp("var\\s+" + arrayVar + "\\s*=\\s*(\\[[^\\]]+\\])"));
+      if (!arrayMatch) {
+        console.log("[Nupload] No se encontr\xF3 el array de valores ofuscados");
+        return null;
+      }
+      const values = JSON.parse(arrayMatch[1]);
+      let fileUrl = "";
+      values.forEach((value) => {
+        fileUrl += String.fromCharCode(parseInt(atob(value).replace(/\D/g, "")) - offset);
+      });
+      const sesz = (_a = html.match(/var sesz\s*=\s*"([^"]+)"/)) == null ? void 0 : _a[1];
+      if (!sesz) {
+        console.log("[Nupload] No se encontr\xF3 el token sesz");
+        return null;
+      }
+      const finalUrl = fileUrl + "?s=" + sesz;
+      console.log("[Nupload] Siguiendo redirecci\xF3n de la URL construida...");
+      const videoUrl = yield getFinalUrlBypass(finalUrl, { "User-Agent": UA2 });
+      const refererHeaders = {
+        "User-Agent": UA2,
+        "Referer": "https://nupload.me/",
+        "Origin": "https://nupload.me"
+      };
+      const quality = yield detectQuality(videoUrl, {
+        "Referer": "https://nupload.me/",
+        "User-Agent": UA2
+      });
+      console.log("[Nupload] Quality detectada:", quality);
+      console.log(`[Nupload] URL encontrada (${quality}): ${videoUrl.substring(0, 80)}...`);
+      return { url: videoUrl, quality, headers: refererHeaders };
+    } catch (e) {
+      console.log(`[Nupload] Error: ${e.message}`);
+      return null;
+    }
+  });
+}
+var TMDB_API_KEY = "439c478a771f35c05022f9feabcca01c";
+var BASE_URL2 = "https://seriesflixhd.best";
+var UA3 = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+function buildSlug(title) {
+  return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, "y").replace(/[^a-z0-9\s-]/g, " ").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+function getTmdbData(tmdbId, mediaType) {
+  return __async(this, null, function* () {
+    const [esEs, esMx, enUs] = yield Promise.all(
+      ["es-ES", "es-MX", "en-US"].map(
+        (lang) => fetch(`https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${lang}`).then((r) => r.json()).catch(() => null)
+      )
+    );
+    const titleEs = esEs ? mediaType === "movie" ? esEs.title : esEs.name : null;
+    const data = esMx && !/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(mediaType === "movie" ? esMx.title : esMx.name) ? esMx : enUs;
+    if (!data)
+      return null;
+    const title = mediaType === "movie" ? data.title : data.name;
+    const originalTitle = mediaType === "movie" ? data.original_title : data.original_name;
+    const year = (data.release_date || data.first_air_date || "").substring(0, 4);
+    console.log(`[SeriesFlixHD] TMDB: "${title}" (${year})`);
+    return { title, originalTitle, year, titleEs };
+  });
+}
+function fetchEpisodePage(slug) {
+  return __async(this, null, function* () {
+    const url = `${BASE_URL2}/episodio/${slug}`;
+    try {
+      const res = yield fetch(url, {
+        headers: { "User-Agent": UA3, "Accept": "text/html" }
+      });
+      if (!res.ok)
+        return null;
+      const html = yield res.text();
+      return html;
+    } catch (e) {
+      console.log(`[SeriesFlixHD] fetch error: ${e.message}`);
+      return null;
+    }
+  });
+}
+function extractEmbeds(html) {
+  const result = { latino: [], castellano: [] };
+  const latinoMatch = html.match(/LATINO[\s\S]*?<ul[^>]*>([\s\S]*?)<\/ul>/);
+  const castellanoMatch = html.match(/CASTELLANO[\s\S]*?<ul[^>]*>([\s\S]*?)<\/ul>/);
+  const extractUrls = (block) => {
+    if (!block)
+      return [];
+    return [...block.matchAll(/data-url="([^"]+)"/g)].map((m) => {
+      try {
+        return atob(m[1]);
+      } catch (e) {
+        console.log(`[SeriesFlixHD] Error decodificando base64: ${e.message}`);
+        return null;
+      }
+    }).filter(Boolean).filter((u) => u.includes("nupload.me/watch/"));
+  };
+  result.latino = extractUrls(latinoMatch == null ? void 0 : latinoMatch[1]);
+  result.castellano = extractUrls(castellanoMatch == null ? void 0 : castellanoMatch[1]);
+  return result;
+}
+function getStreams(tmdbId, mediaType, season, episode) {
+  return __async(this, null, function* () {
+    if (!tmdbId || mediaType !== "tv")
+      return [];
+    const startTime = Date.now();
+    console.log(`[SeriesFlixHD] Buscando: TMDB ${tmdbId} S${season}E${episode}`);
+    try {
+      const tmdbInfo = yield getTmdbData(tmdbId, mediaType);
+      if (!tmdbInfo)
+        return [];
+      const ep = String(episode);
+      const s = parseInt(season);
+      const slugs = [];
+      if (tmdbInfo.title) {
+        slugs.push(`${buildSlug(tmdbInfo.title)}-${s}x${ep}`);
+        slugs.push(`${buildSlug(tmdbInfo.title)}-${tmdbInfo.year}-${s}x${ep}`);
+      }
+      if (tmdbInfo.originalTitle && tmdbInfo.originalTitle !== tmdbInfo.title) {
+        slugs.push(`${buildSlug(tmdbInfo.originalTitle)}-${s}x${ep}`);
+        slugs.push(`${buildSlug(tmdbInfo.originalTitle)}-${tmdbInfo.year}-${s}x${ep}`);
+      }
+      if (tmdbInfo.titleEs && tmdbInfo.titleEs !== tmdbInfo.title) {
+        slugs.push(`${buildSlug(tmdbInfo.titleEs)}-${s}x${ep}`);
+        slugs.push(`${buildSlug(tmdbInfo.titleEs)}-${tmdbInfo.year}-${s}x${ep}`);
+      }
+      let html = null;
+      try {
+        html = yield Promise.any(
+          slugs.map((slug) => fetchEpisodePage(slug).then((h) => {
+            if (!h || !h.includes("data-url"))
+              throw new Error("not found");
+            console.log(`[SeriesFlixHD] \u2713 Slug encontrado`);
+            return h;
+          }))
+        );
+      } catch (e) {
+        html = null;
+      }
+      const embeds = extractEmbeds(html);
+      console.log(`[SeriesFlixHD] Latino: ${embeds.latino.length} | Castellano: ${embeds.castellano.length}`);
+      const streams = [];
+      for (const [urls, langLabel] of [[embeds.latino, "Latino"], [embeds.castellano, "Castellano"]]) {
+        if (urls.length === 0)
           continue;
-        let w = (yield Promise.allSettled(f.map((p) => T(p)))).filter((p) => p.status === "fulfilled" && p.value).map((p, X) => ({ name: "SeriesFlixHD", title: `${p.value.quality} \xB7 ${g} \xB7 Nupload`, url: p.value.url, quality: p.value.quality, headers: p.value.headers }));
-        if (h.push(...w), w.length > 0)
+        const results = yield Promise.allSettled(urls.map((u) => resolveNupload(u)));
+        const valid = results.filter((r) => r.status === "fulfilled" && r.value).map((r, i) => ({
+          name: "SeriesFlixHD",
+          title: `${r.value.quality} \xB7 ${langLabel} \xB7 Nupload`,
+          url: r.value.url,
+          quality: r.value.quality,
+          headers: r.value.headers
+        }));
+        streams.push(...valid);
+        if (valid.length > 0)
           break;
       }
-      let v = ((Date.now() - r) / 1e3).toFixed(2);
-      return console.log(`[SeriesFlixHD] \u2713 ${h.length} streams en ${v}s`), h;
-    } catch (o) {
-      return console.log(`[SeriesFlixHD] Error: ${o.message}`), [];
+      const elapsed = ((Date.now() - startTime) / 1e3).toFixed(2);
+      console.log(`[SeriesFlixHD] \u2713 ${streams.length} streams en ${elapsed}s`);
+      return streams;
+    } catch (e) {
+      console.log(`[SeriesFlixHD] Error: ${e.message}`);
+      return [];
     }
   });
 }
